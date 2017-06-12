@@ -19,8 +19,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OneBestRecAlgorithm", "OneB
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeechSegmentAlgorithm", "SpeechSegmentAlgorithm\SpeechSegmentAlgorithm.vcxproj", "{E3832A98-E58D-4992-B75F-A0511B1EAF0A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NewFeature", "NewFeature\NewFeature.vcxproj", "{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CmdWordBaseSeg", "CmdWordBaseSeg\CmdWordBaseSeg.vcxproj", "{6C4EEFE5-1DF9-4182-B803-FDDF3B5B8DA5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrainPrimeCodeBook", "TrainPrimeCodeBook\TrainPrimeCodeBook.vcxproj", "{B440D6F6-D3BF-467F-AE63-000D9F71EC48}"
@@ -154,18 +152,6 @@ Global
 		{E3832A98-E58D-4992-B75F-A0511B1EAF0A}.Release|Win32.Build.0 = Release|x64
 		{E3832A98-E58D-4992-B75F-A0511B1EAF0A}.Release|x64.ActiveCfg = Release|x64
 		{E3832A98-E58D-4992-B75F-A0511B1EAF0A}.Release|x64.Build.0 = Release|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|Win32.ActiveCfg = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|Win32.Build.0 = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|x64.ActiveCfg = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Debug|x64.Build.0 = Debug|x64
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|Win32.ActiveCfg = Release|Win32
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|Win32.Build.0 = Release|Win32
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|x64.ActiveCfg = Release|Win32
-		{6FA0CAA7-345F-4F30-A4B5-5D7189FAD5A2}.Release|x64.Build.0 = Release|Win32
 		{6C4EEFE5-1DF9-4182-B803-FDDF3B5B8DA5}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{6C4EEFE5-1DF9-4182-B803-FDDF3B5B8DA5}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{6C4EEFE5-1DF9-4182-B803-FDDF3B5B8DA5}.Debug|Win32.ActiveCfg = Debug|Win32
