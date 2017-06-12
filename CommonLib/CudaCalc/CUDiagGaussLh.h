@@ -1,7 +1,7 @@
 #ifndef _WJQ_CU_DIAG_GAUSS_LH_H_
 #define _WJQ_CU_DIAG_GAUSS_LH_H_
 #include "cuda_runtime.h"
-
+//cpu/gpu 计算diag gauss 模型似然的函数
 
 class CUDiagGaussLh {
 

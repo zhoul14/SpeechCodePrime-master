@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-class RSpeechFile {
+class CSpeechFile {
 	friend class ClusterParam;
 
 private:
@@ -13,8 +13,6 @@ private:
 	std::string maskFile;
 
 	std::string answerFile;
-
-	std::string recResultFile;
 
 public:
 	std::string getFeatureFileName() {
@@ -29,18 +27,27 @@ public:
 		return answerFile;
 	}
 
-	std::string getRecResultFileName() {
-		return recResultFile;
-	}
 };
 
 class ClusterParam {
 private:
-	int recNum;
+	int fileNum;//文件个数
 
-	int fDim;
+	int fDim;//维度
 
-	std::vector<RSpeechFile> fileSets;
+	double rate;//DTW 压缩率rate
+
+	double threshold;//NICV 门限
+
+	std::string saveDir;//保存的路径
+
+	bool useDTW;//是否使用DTW
+
+	bool useNICV;//是否使用NICV
+
+	bool useHalfLen;//是否使用半帧长
+
+	std::vector<CSpeechFile> fileSets;
 
 	void checkExist(const char* str);
 
@@ -51,13 +58,23 @@ private:
 public:
 	ClusterParam(const char* filename);
 
-	int getRecNum();
+	int getFileNum();//
 
-	std::vector<RSpeechFile> getRecFiles();
+	std::vector<CSpeechFile> getClusterFiles();
+
+	std::string getSaveDir();
 
 	int getFdim();
 
+	bool getDTWflag();
 
+	bool getHalfLen();
+
+	bool getNICVflag();
+
+	double getRate();
+
+	double getThres();
 };
 
 #endif

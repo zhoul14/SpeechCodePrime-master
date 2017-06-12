@@ -12,6 +12,7 @@ public:
 	~DisCluster(){
 
 	}
+	//NICV聚类
 	double doCluster(double* fts, const int& frameLen, int flag = MEAN_CENTER, const int* jumpTable = NULL){
 
 		m_dVar = 0;
@@ -48,31 +49,24 @@ public:
 
 		delete []tmpCenter;
 
-		return ((double)segPoints.size()/ frameLen);
+		return ((double)frameLen/segPoints.size());
 	}
+	//初始化
 	void init(const int&fdim, const double& k, const int& maxClusterClt){
 		m_nFDim = fdim;
 		m_dK = k;
 		m_maxClusterClt = maxClusterClt;
 	}
+	//计算feature里的总能量
 	double calcEnergy(double* features){
 		double energy = 0.0f;
-		/*
-		for (int k = 0; k != clusterNum; k++)
-		{
-		for (int i = 0; i != 14; i++)
-		{
-		energy += features[i + k * fDim] * features[i + k * fDim];
-		}
-		energy += features[42 + k * fDim] * features[42 + k * fDim];
-		}*/
 		for (int i = 0; i != 14; i++)
 		{
 			energy += features[i ] * features[i];
 		}
-		//energy += features[42] * features[42];
 		return energy;
 	}
+	//计算方差
 	double calcVar(double* features, double* center, int clusterNum){
 		double energy = calcEnergy(features + (clusterNum - 1) * m_nFDim);
 		double dis = 0.0f;
@@ -83,26 +77,24 @@ public:
 			{
 				dis += (features[i + k * m_nFDim] - center[i])* (features[i + k * m_nFDim] - center[i]);
 			}
-			//dis += (features[42 + k * m_nFDim] - center[42])* (features[42 + k * m_nFDim] - center[42]);
 		}
 		m_dtmpEnergy = energy;
 
 		auto res = dis/(energy + m_dEnergy);
 		return res;
 	}
+	//计算NICV，目前没用到
 	double calcNICV(double* features, double* center){
 		double energy = 0.0f;
 		for (int i = 0; i != 14; i++)
 		{
 			energy += features[i ] * features[i];
 		}
-		energy += features[42] * features[42];
 		double dis = 0.0f;
 		for (int i = 0; i != 14; i++)
 		{
 			dis += (features[i] - center[i])* (features[i] - center[i]);
 		}
-		dis += (features[42] - center[42])* (features[42] - center[42]);
 		m_dtmpEnergy = energy;
 		m_dtmpVar = dis;
 
@@ -114,11 +106,7 @@ public:
 	}
 
 	static const int MEAN_CENTER = 0;
-	static const int FIRST_CENTER = 1;
-	static const int MIDDLE_CENTER = 2;
-	static const int RIGHT_CENTER = 3;
-	static const int RANDOM_CENTER = 4;
-	static const int MEDOIDS_CENTER = 5;
+
 private:
 	int m_nFDim;
 	int m_maxClusterClt;

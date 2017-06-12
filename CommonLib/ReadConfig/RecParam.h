@@ -44,11 +44,19 @@ private:
 
 	std::string cltDirName;
 
+	std::string NNmodelName;
+
 	int recNum;
 
 	int multiJump;
 
 	int useCuda;
+
+	int usePy;
+
+	int useDrop;
+
+	int useHalfLen;
 
 	int fDim;
 
@@ -89,6 +97,12 @@ public:
 
 	double getDurWeight();
 
+	bool getUseHalfLenFlag();
+
+	bool getUseDropFlag();
+
+	bool getUsePYFlag();
+
 	std::vector<RSpeechFile> getRecFiles();
 
 	bool getTriPhone();
@@ -96,6 +110,8 @@ public:
 	int getFdim();
 
 	bool getBHeadNoise();
+
+	std::string getNNmodelName();
 
 	int getClusterFlag();
 };

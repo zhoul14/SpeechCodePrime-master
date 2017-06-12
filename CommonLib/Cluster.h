@@ -1,40 +1,41 @@
 #include "../CommonLib/FileFormat/FeatureFileSet.h"
 #include <string>
+#include <stdio.h>
+#include <io.h>
+
 using namespace std;
 class Cluster{
+	//对自适应聚类特征进行聚类
 public:
 	static const int MEAN = 1;
 	static const int RANDOM = 2;
-	static const int MULTI = 3;
-	static const int MIDDLE = 4;
-	static const int MEDOIDS = 5;
 public:
-	Cluster(string filename, FeatureFileSet& fs, string dirName =""){
-		mEfBuf = nullptr;
+	//读取文件
+	Cluster(string filename, string dirName =""){
+		mClusterFileBuf = nullptr;
 		if (dirName == "")
 		{
 			return ;
 		}
+		
 		string pf = filename.substr(filename.find_last_of('/') + 1,filename.find_last_of('.') - filename.find_last_of('/') -1);
 		string fDir = filename.substr(0, filename.find_last_of('/')+1);
-		//string s = filename.substr(0, filename.find_last_of('.') + 1);
-		//FILE* df = fopen(string("clt/"+ s + ".clt").c_str(),"rb");
 		dirName += dirName != ""? "/" : "";
 		FILE* df = fopen(string(fDir + dirName + pf + ".clt").c_str(),"rb");
-		int n = fs.fileByteNum(df);
-		mEfBuf = new char[n];
-		fread(mEfBuf, 1, n, df);
+		int n = _filelength(_fileno(df));
+		mClusterFileBuf = new char[n];
+		fread(mClusterFileBuf, 1, n, df);
 		fclose(df);
 	};
 	~Cluster(){
-		if (mEfBuf!= nullptr)
+		if (mClusterFileBuf!= nullptr)
 		{
-			delete []mEfBuf;
+			delete []mClusterFileBuf;
 		}
 	}
 	int* getClusterInfo(const int& j, const int&fNum){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		int* segBuf = (int*)(clustidx->offset + mClusterFileBuf);
 		int clusterNum = clustidx->ClusterNum;
 		if(segBuf[clusterNum -1] != fNum){
 			printf("last cluster idx:%d != fNum:%d\n",segBuf[clusterNum -1],fNum);
@@ -42,13 +43,13 @@ public:
 		return segBuf;
 	}
 	int getClusterNum(const int& j){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
 		int clusterNum = clustidx->ClusterNum;
 		return clusterNum;
 	}
 	int getClusterInfo(const int& j, const int&fNum, int* outBuf){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		int* segBuf = (int*)(clustidx->offset + mClusterFileBuf);
 		int clusterNum = clustidx->ClusterNum;
 		if(segBuf[clusterNum -1] != fNum){
 			printf("last cluster idx:%d != fNum:%d\n",segBuf[clusterNum -1],fNum);
@@ -66,7 +67,6 @@ public:
 			{
 				energy += features[i + k * fDim] * features[i + k * fDim];
 			}
-			//energy += features[42 + k * fDim] * features[42 + k * fDim];
 		}
 		double dis = 0.0f;
 		for (int k = 0; k != clusterNum; k++)
@@ -76,55 +76,15 @@ public:
 			{
 				dis += (features[i + k * fDim] - center[i])* (features[i + k * fDim] - center[i]);
 			}
-			//dis += (features[42 + k * fDim] - center[42])* (features[42 + k * fDim] - center[42]);
 		}
 		auto res = dis/energy;
 		return res;
 	}
-	int clusterStat(double* features, const int& j, const int &fDim, const int&fNum,vector<int>& statVec){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
+	int clusterFrameSameLen(double* features, const int& j, const int &fDim, const int&fNum, int flag = MEAN){
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		int* segBuf = (int*)(clustidx->offset + mClusterFileBuf);
 		int clusterNum = clustidx->ClusterNum;
-
-		int counter = 0;
-		double* temp = new double[fNum * fDim];
-		double* head = temp;
-		memset(temp,0,sizeof(double) * fNum * fDim);
-		int outCnt = 0;
-		int clustCnt = 0;
-		int lastCnt = 0;
-		vector<double>var;
-		for (int t = 0; t !=fNum; t++)
-		{
-			if(t>=segBuf[outCnt]){
-				lastCnt = segBuf[outCnt];
-
-				if(clustCnt!=1){
-					int idx = calcVar(features + (t - clustCnt) * fDim, head, clustCnt, fDim) * 1000 + 1;
-					idx = min(149, idx);
-					statVec[idx]+=1;
-				}
-
-				head += fDim;
-				outCnt++;
-
-			}
-			auto fHead  = features + t * fDim;
-			clustCnt = (segBuf[outCnt] > fNum? fNum : segBuf[outCnt]) - lastCnt;
-			for (int d = 0; d != fDim; d++)
-			{
-				head[d] += fHead[d]/clustCnt;
-			}
-		}
-		memcpy(features, temp, clusterNum * fDim * sizeof(double));
-		delete[] temp;
-		return fNum;
-	}
-	int clusterFrameSame(double* features, const int& j, const int &fDim, const int&fNum, int flag = MEAN){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
-		int clusterNum = clustidx->ClusterNum;
-		if(segBuf[clusterNum -1] != fNum && flag != MEDOIDS){
+		if(segBuf[clusterNum -1] != fNum){
 			printf("last cluster idx:%d != fNum:%d\n",segBuf[clusterNum -1],fNum);
 		}
 		int counter = 0;
@@ -164,10 +124,10 @@ public:
 		return fNum;
 	}
 	int clusterFrame(double* features, const int& j, const int &fDim, const int&fNum, int flag = MEAN){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		int* segBuf = (int*)(clustidx->offset + mClusterFileBuf);
 		int clusterNum = clustidx->ClusterNum;
-		if(segBuf[clusterNum -1] != fNum && flag != MEDOIDS){
+		if(segBuf[clusterNum -1] != fNum){
 			printf("last cluster idx:%d != fNum:%d\n",segBuf[clusterNum -1],fNum);
 		}
 		int counter = 0;
@@ -210,35 +170,6 @@ public:
 				}
 			}
 			break;
-		case MEDOIDS:
-			{
-				for (int t = 0; t !=clusterNum; t++)
-				{
-					auto fHead  = features + segBuf[t] * fDim;
-					memcpy(head, fHead, sizeof(double) * fDim);
-					head += fDim;
-				}
-			}
-			break;
-		case MULTI:
-			{
-				for (int t = 0; t !=fNum; t++)
-				{
-					if(t>=segBuf[outCnt]){
-						lastCnt = segBuf[outCnt];
-						head += fDim;
-						outCnt++;
-					}
-					auto fHead  = features + t * fDim;
-					clustCnt = (segBuf[outCnt] > fNum? fNum : segBuf[outCnt]) - lastCnt;
-
-					for (int d = 0; d != fDim; d++)
-					{
-						head[d] += fHead[d]/clustCnt;
-					}
-				}
-			}
-			break;
 		}
 		memcpy(features, temp, clusterNum * fDim * sizeof(double));
 		delete[] temp;
@@ -246,15 +177,12 @@ public:
 	}
 
 	int clusterMultiFrame(double* features, const int& j, const int& fDim, const int& fNum, int* maskData, const int& segNum, double* outBuffer, const int& flag){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		int* segBuf = (int*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		int* segBuf = (int*)(clustidx->offset + mClusterFileBuf);
 		int clusterNum = clustidx->ClusterNum;
-
 
 		double* featuresBuffer = new double[fNum * fDim];
 		int fBufIdx = 0;
-
-
 		int totalFrameNum = 0;
 		int cnt = 0;
 		int localCnt = 0;
@@ -281,7 +209,7 @@ public:
 			int lastCnt = localCnt == 0 ? 0 : segBuf[localCnt - 1];
 			int historySegCnt = localCnt;
 
-			if(flag == 1){
+			if(flag == MEAN){
 				for (int j = begFrame; j <= endFrame; j++) {
 					if(cnt>=segBuf[localCnt]){
 						lastCnt = segBuf[localCnt];
@@ -322,19 +250,6 @@ public:
 		int tail = maskData[segNum * 2 - 1] + 1;
 		memcpy(featuresBuffer + fBufIdx, features + tail * fDim, sizeof(double) * fDim * (fNum - tail));//复制尾巴
 
-#ifdef _DEBUG
-		for (int i = 0; i != fNum; i++)
-		{
-			for (int k = 0; k != fDim; k++)
-			{
-				if (featuresBuffer[i *fDim + k] != features[i*fDim + k])
-				{
-					int debug = 1;
-				}
-			}
-		}
-#endif
-
 		//重新分帧
 		cnt = 0;
 		for (int i = 0; i < segNum; i++) {
@@ -354,5 +269,5 @@ public:
 		return clusterNum;
 	}
 private:
-	char* mEfBuf;
+	char* mClusterFileBuf;
 };

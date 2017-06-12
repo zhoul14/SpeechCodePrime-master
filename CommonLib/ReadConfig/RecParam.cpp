@@ -123,8 +123,13 @@ RecParam::RecParam(char* filename) {
 	triPhone = config["TRIPHONE"] == "" ? 1 :std::stoi(config["TRIPHONE"]);
 	m_bHeadNOise = config["HEADNOISE"] == "" ? false : std::stoi(config["HEADNOISE"]);
 
-	cltDirName = config["CLTDIR"] == ""? "" : (config["CLTDIR"]);
-	useCluster = config["CLUSTER"] == "" ? -1 : stoi(config["CLUSTER"]);
+	cltDirName = config["CLTDIR"] == "" ? "" : (config["CLTDIR"]);
+	NNmodelName = config["NNMODEL"];
+	useCluster = config["CLUSTER"] == "" ? 0 : stoi(config["CLUSTER"]);
+
+	usePy = config["USEPY"] == "" ? 0 : stoi(config["USEPY"]);
+	useHalfLen = config["USEHALFLEN"] == "" ? 0: stoi(config["USEHALFLEN"]);
+	useDrop = config["USEDROP"] == "" ? 0 : stoi(config["USEDROP"]);
 
 	//using boost::property_tree::ptree;
 	//using boost::algorithm::trim;
@@ -177,6 +182,18 @@ bool RecParam::getSegmentModelFlag() {
 	return (useSegmentModel != 0);
 }
 
+bool RecParam::getUsePYFlag() {
+	return (usePy != 0);
+}
+
+bool RecParam::getUseHalfLenFlag(){
+	return (useHalfLen != 0);
+}
+
+bool RecParam::getUseDropFlag(){
+	return (useDrop != 0);
+}
+
 bool RecParam::getUseCudaFlag() {
 	return (useCuda != 0);
 }
@@ -191,6 +208,10 @@ int RecParam::getMultiJump() {
 
 std::string RecParam::getCodebookFileName() {
 	return codebookFileName;
+}
+
+std::string RecParam::getNNmodelName(){
+	return NNmodelName;
 }
 
 std::string RecParam::getCltDirName(){

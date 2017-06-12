@@ -75,9 +75,6 @@
     <ClCompile Include="ReadConfig\TrainParam.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CUMixGaussLh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CudaCalc\CUDiagGaussLh.h">
@@ -147,9 +144,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReadConfig\TrainParam.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CUMixGaussLh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Droper.h">

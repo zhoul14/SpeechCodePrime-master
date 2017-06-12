@@ -261,7 +261,7 @@ int main(int argc, char** argv) {
 
 			FeatureFileSet input((*i).getFeatureFileName(), (*i).getMaskFileName(), (*i).getAnswerFileName(), fDim);
 
-			Cluster cluster((*i).getFeatureFileName(),input, tparam.getCltDirName());
+			Cluster cluster((*i).getFeatureFileName(), tparam.getCltDirName());
 
 #if PRIME
 			int ii=trainCnt;
@@ -490,7 +490,7 @@ int main(int argc, char** argv) {
 					if(clusterFlag){
 						double* tmpFrames = new double[fDim * fNum];
 						memcpy(tmpFrames, frames, sizeof(double) * fDim * fNum);
-						fNum = cluster.clusterFrameSame(tmpFrames, j, fDim, fNum);
+						fNum = cluster.clusterFrame(tmpFrames, j, fDim, fNum);
 						gbc->prepare(tmpFrames, fNum);
 						delete tmpFrames;
 					}

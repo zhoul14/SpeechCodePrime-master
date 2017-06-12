@@ -52,22 +52,30 @@ public:
 
 	void printFeatureFileToTxt(const char * filename);
 
+	//获取帧特征序列
 	void getSpeechAt(int speechIdx, double* outputBuffer);
 
+	//获取帧数
 	int getFrameNumInSpeech(int speechIdx);
 
+	//获取答案字数
 	int getWordNumInSpeech(int speechIdx);
 
+	//获取多帧特征序列
 	void getMultiSpeechAt(int speechIdx, double* outputBuffer);
 
+	//获取答案表
 	void getWordListInSpeech(int speechIdx, int* outputWordList);
 
+	//保存分割点
 	void SaveSegmentPointToBuf(int speechIdx, std::vector<int> &res);
 
 	void PrintSegmentPointBuf(std::string fileName);
 
+	//获得有无声音段的信息
 	void getMaskData(int* buffer, const int& speechIdx);
 
+	//获取不加mask的帧数
 	int getPrimeFrameLen(const int& speechIdx);
 
 	void getPrimeSpeechAt(int speechIdx, double* outputBuffer);
@@ -76,8 +84,10 @@ public:
 
 	~FeatureFileSet();
 
+	//获取5ms帧移的特征矢量
 	void getSpeechAt_half_framelen(int speechIdx, double* outputBuffer, int e);
 	
+	//获取5ms帧移的帧数
 	int getFrameNumInSpeech_half_framelen(int speechIdx);
 };
 

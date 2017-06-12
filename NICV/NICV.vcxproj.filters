@@ -33,12 +33,6 @@
     <ClInclude Include="DTWCluster.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="EF.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="EFeature.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ClusterParam.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -47,9 +41,6 @@
     <None Include="..\DTW\DTW.vcxproj.filters" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="源.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="CFFT.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -59,16 +50,13 @@
     <ClCompile Include="DTWCluster.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="EF.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="EFeature.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="FeatureFileSet.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ClusterParam.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

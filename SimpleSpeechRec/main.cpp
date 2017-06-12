@@ -12,9 +12,6 @@
 #include "../CommonLib/Droper.h"
 #include "../CommonLib/Cluster.h"
 #include <time.h>
-#define DROPFRAME 0
-#define REC_PY 0
-#define HALF_FRAME_LEN 0
 
 using namespace std;
 void printRecFile(FILE* fid, const vector<SWord>& res) {
@@ -50,6 +47,52 @@ void printRecResToScreen(const vector<SWord>& res, int* ansId, int ansNum, WordD
 	printf("\n\n");
 
 }
+void calSpeechLh(FeatureFileSet &fs, Droper* droper, Cluster* cluster, const int& j, int fNum, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc){
+
+	double* features = new double[fNum * fDim];
+	fs.getSpeechAt(j, features);
+	if(droper != nullptr)fNum = droper->dropFrame(features, j, fDim, fNum);
+	if(cluster != nullptr)fNum = cluster->clusterFrame(features, j, fDim, fNum, useClusterFlag);//如果聚类
+	gbc->prepare(features, fNum);
+	delete [] features;
+}
+
+void calPYSpeechLh(FeatureFileSet &fs, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc){
+
+	int fNum = fs.getFrameNumInSpeech(j);
+	double* featuresMulti = nullptr;
+	if(cluster == nullptr){
+		featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
+		fs.getMultiSpeechAt(j, featuresMulti);
+		gbc->preparePy(featuresMulti, fNum);
+	}
+	else{
+		int primeFLen = fs.getPrimeFrameLen(j);
+		double* features = new double[primeFLen * fDim];
+		int maskLen = fs.getMaskLen(j);
+		int *maskInfo = new int[maskLen * 2];
+		fs.getMaskData(maskInfo, j);
+		fs.getPrimeSpeechAt(j, features);
+		featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
+		fNum = cluster->clusterMultiFrame(features, j, fDim, primeFLen, maskInfo, maskLen, featuresMulti, useClusterFlag);
+		gbc->preparePy(featuresMulti, fNum);
+		delete [] maskInfo;
+		delete [] features;
+
+	}
+
+	delete [] featuresMulti;
+}
+
+void calHalfFrameLenSpeechLh(FeatureFileSet &fs, Droper* droper, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc){
+
+	int fNum = fs.getFrameNumInSpeech_half_framelen(j);
+	double* features = new double[fNum * fDim];
+	fs.getSpeechAt_half_framelen(j, features, fNum);
+	if(cluster!= nullptr)fNum = cluster->clusterFrame(features, j, fDim, fNum, useClusterFlag);//如果聚类
+	gbc->prepare(features, fNum);
+	delete []features;
+}
 
 
 int main(int argc,char *argv[]) {
@@ -70,7 +113,6 @@ int main(int argc,char *argv[]) {
 	RecParam rparam(recg);
 	std::string CodeBookName = rparam.getCodebookFileName();
 	int recFileNum = rparam.getRecNum();
-	int multiJump = rparam.getMultiJump();
 
 	const int bestN = BEST_N;
 
@@ -84,13 +126,17 @@ int main(int argc,char *argv[]) {
 
 	bool useSegmentModel = rparam.getSegmentModelFlag();
 	bool useCuda = rparam.getUseCudaFlag();
+	bool usePy = rparam.getUsePYFlag();
+	bool useDropFrame = rparam.getUseDropFlag();
+	bool useHalfLenStep = rparam.getUseHalfLenFlag();
 	int useClusterFlag = rparam.getClusterFlag();
 
 	GMMProbBatchCalc* gbc = new GMMProbBatchCalc(cbset, useCuda, useSegmentModel);
-#if REC_PY
-	gbc->initPython();
-	gbc->getNNModel(rparam.getCodebookFileName());
-#endif
+
+	if(usePy){
+		gbc->initPython();
+		gbc->getNNModel(rparam.getNNmodelName());
+	}
 	WordDict* dict = new WordDict(rparam.getWordDictFileName().c_str(),rparam.getTriPhone());
 
 	const int fDim = cbset->FDim;
@@ -124,13 +170,14 @@ int main(int argc,char *argv[]) {
 		//读入语音特征文件
 		int SentenceNum = fs.getSpeechNum();
 		fprintf(recf, "%4d\n", SentenceNum);
-#if DROPFRAME
-		Droper droper(input.getFeatureFileName(),fs,400000);
-#endif
+		Droper* droper = nullptr;
+		if(useDropFrame){
+			droper = new Droper(input.getFeatureFileName(),fs,400000);
+		}
 		Cluster* cluster = nullptr;
-		if(useClusterFlag != -1){
+		if(useClusterFlag > 0){
 			cltDirname = cltDirname == "" ? rparam.getCltDirName() : cltDirname;
-			cluster = new Cluster (input.getFeatureFileName(),fs,cltDirname);
+			cluster = new Cluster (input.getFeatureFileName(),cltDirname);
 			cout<< "CLT DIR NAME:"<<cltDirname<<endl;
 		}
 
@@ -142,66 +189,28 @@ int main(int argc,char *argv[]) {
 			fs.getWordListInSpeech(j, pWordList);
 			int fNum = fs.getFrameNumInSpeech(j);
 
-#if DROPFRAME
-			droper.getNewFnum(j,fNum);
-#endif
-
-#if HALF_FRAME_LEN
-			fNum = fs.getFrameNumInSpeech_half_framelen(j);
-			double* features = new double[fNum * fDim];
-			fs.getSpeechAt_half_framelen(j, features, fNum);
-			if(cluster)fNum = cluster->clusterFrame(features, j, fDim, fNum, useClusterFlag);//如果聚类
-			gbc->prepare(features, fNum);
-#elif REC_PY 
-			double* featuresMulti = nullptr;
-			if(!cluster){
-				featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
-				fs.getMultiSpeechAt(j, featuresMulti);
-				gbc->preparePy(featuresMulti, fNum);
+			if(droper != nullptr)droper->getNewFnum(j,fNum);
+			
+			if(useHalfLenStep){
+				calHalfFrameLenSpeechLh(fs, droper, cluster, j, useClusterFlag, fDim, gbc);
+			}
+			else if (usePy){
+				calPYSpeechLh(fs, cluster, j, useClusterFlag, fDim, gbc);
 			}
 			else{
-				int primeFLen = fs.getPrimeFrameLen(j);
-				double* features = new double[primeFLen * fDim];
-				int maskLen = fs.getMaskLen(j);
-				int *maskInfo = new int[maskLen * 2];
-				fs.getMaskData(maskInfo, j);
-				fs.getPrimeSpeechAt(j, features);
-				featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
-				fNum = cluster->clusterMultiFrame(features, j, fDim, primeFLen, maskInfo, maskLen, featuresMulti, useClusterFlag);
-				gbc->preparePy(featuresMulti, fNum);
-				delete [] maskInfo;
-				delete [] features;
-
+				calSpeechLh(fs, droper, cluster, j, fNum, useClusterFlag, fDim, gbc);
 			}
-#else
-			double* features = new double[fNum * fDim];
-			fs.getSpeechAt(j, features);
-
-
-
-
-#if DROPFRAME
-			fNum = droper.dropFrame(features, j, fDim, fNum);
-#endif
-			if(cluster)fNum = cluster->clusterFrame(features, j, fDim, fNum, useClusterFlag);//如果聚类
-			gbc->prepare(features, fNum);
-#endif
-
 			vector<SWord> res = reca->recSpeech(fNum, fDim, dict, gbc, useSegmentModel,rparam.getBHeadNoise());
 			printRecResToScreen(res, pWordList, wordNum, dict);
 
 			int resLen = res.size();
 			totalLh += res[resLen - 1].lh;
 
-#if REC_PY
-			delete [] featuresMulti;
-#else
-			delete [] features;
-#endif
 			delete [] pWordList;
 			printRecFile(recf, res);
 		}
-		if(cluster)delete cluster;
+		if(cluster != nullptr)delete cluster;
+		if(droper != nullptr) delete droper;
 		fclose(recf);
 
 	}
@@ -211,10 +220,6 @@ int main(int argc,char *argv[]) {
 	fprintf(lhFile, "file:%s, timer = %lf\n", cltDirname.c_str(), -time1/1000);
 	fclose(lhFile);
 
-
-#if REC_PY
-	//gbc->FinalizePython();
-#endif
 	delete cbset;
 	delete dict;
 	delete reca;

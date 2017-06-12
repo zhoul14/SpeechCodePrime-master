@@ -21,7 +21,7 @@ using std::vector;
 using std::string;
 
 //是否用GMM作为种子码本，生成NN模型
-#define MAKE_NN_MODEL 1
+#define MAKE_NN_MODEL 0
 
 double* getClusterMultiFrames(const int& j, const int& fDim, int& fNum, Cluster& cluster, FeatureFileSet& input){
 	int primeFLen = input.getPrimeFrameLen(j);
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 	}
 
 
-	string* configName,* configName2;
+	string* configName;
 	if (argc == 1) {
 		configName = new string("train_config.xml");
 	} else {
@@ -69,15 +69,16 @@ int main(int argc, char** argv) {
 	SegmentUtility u;
 	SimpleSTFactory* stfact = new SimpleSTFactory();
 	u.factory = stfact;
-	WordDict* dict = new WordDict(tparam.getWordDictFileName().c_str(),triPhone);
+	WordDict* dict = new WordDict(tparam.getWordDictFileName().c_str(),triPhone);//字典位置
 	u.dict = dict;
-	string initCb = tparam.getInitCodebook();
-	GMMCodebookSet* set = new GMMCodebookSet(initCb.c_str(),0);
-	GCSTrimmer::fixSmallDurSigma(set, tparam.getMinDurSigma());
+	string initCb = tparam.getInitCodebook();//初始码本名字
+	GMMCodebookSet* set = new GMMCodebookSet(initCb.c_str(),0);//初始化种子码本
+	GCSTrimmer::fixSmallDurSigma(set, tparam.getMinDurSigma());//设置最小段长方差
 	int cbNum = set->getCodebookNum();
 
-	bool useCuda = tparam.getUseCudaFlag();
-	bool useSegmentModel =  tparam.getSegmentModelFlag();
+	bool useCuda = tparam.getUseCudaFlag();//是否gpu
+	bool useSegmentModel =  false;//是否段长
+	string NNname = tparam.getInitNNname();//初始dnn模型的名字
 	if (useCuda) {
 		printf("UseCUDA is true\n");
 	} else {
@@ -89,14 +90,14 @@ int main(int argc, char** argv) {
 	} else {
 		printf("UseSegmentModel is false\n");
 	}
-	GMMProbBatchCalc* gbc =	new GMMProbBatchCalc(set, useCuda, useSegmentModel);
+	GMMProbBatchCalc* gbc =	new GMMProbBatchCalc(set, useCuda, useSegmentModel);//初始化计算类
 	printf("cbs fdim = %d, cbs statenum = %d, cbs mixture = %d\n",set->getFDim(),set->getCodebookNum(),set->getMixNum());
-	u.bc = gbc;//
+	u.bc = gbc;//把gbc给更新器
 
-	gbc->initPython();
-	gbc->getNNModel(tparam.getInitCodebook());
+	gbc->initPython();//初始化python模块
+	if(MAKE_NN_MODEL == false)gbc->getNNModel(tparam.getInitNNname());//如果不是第一次生产dnn，则给gbc种子nn模型
 
-	//初始化输入数据集
+	//初始化输入数据集，各种Log文件
 	vector<TSpeechFile> inputs = tparam.getTrainFiles();
 	int maxEMIter = tparam.getEMIterNum();
 	int trainIter = tparam.getTrainIterNum();
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
 	}
 
 	SegmentAlgorithm sa;
-	GMMUpdateManager ua(set, maxEMIter, dict, tparam.getMinDurSigma(), updateIterPath.c_str(), useCuda, useSegmentModel, false);
+	GMMUpdateManager ua(set, maxEMIter, dict, tparam.getMinDurSigma(), updateIterPath.c_str(), useCuda, useSegmentModel);
 	for (int iter = 0; iter < trainIter ; iter++) {
 
 		int trainCnt = -1;
@@ -135,44 +136,43 @@ int main(int argc, char** argv) {
 			trainCnt++;
 			if (trainCnt == tparam.getTrainNum())break;
 
-			const int fDim = tparam.getFdim();
-			FeatureFileSet input((*i).getFeatureFileName(), (*i).getMaskFileName(), (*i).getAnswerFileName(), fDim);
-			Cluster cluster((*i).getFeatureFileName(),input, tparam.getCltDirName());
-
+			const int fDim = tparam.getFdim();//feature dim
+			FeatureFileSet input((*i).getFeatureFileName(), (*i).getMaskFileName(), (*i).getAnswerFileName(), fDim);//给文件夹集
+			Cluster cluster((*i).getFeatureFileName(), tparam.getCltDirName());//初始化cluster
 
 			int speechNumInFile = input.getSpeechNum();
 			for (int j = 0; j < (speechNumInFile); j++) {
 
 				printf("process file %d, speech %d    \r", trainCnt, j);
 
-				int fNum = input.getFrameNumInSpeech(j);
-				int ansNum = input.getWordNumInSpeech(j);
+				int fNum = input.getFrameNumInSpeech(j);//帧数
+				int ansNum = input.getWordNumInSpeech(j);//答案数
 				if (fNum < ansNum * HMM_STATE_DUR * 2) {
 					printf("\ntoo short speech, file = %d, speech = %d ignored in training (fNum = %d, ansNum = %d)\n", trainCnt, j, fNum, ansNum);
 					continue;
 				}
 
-				int* ansList = new int[ansNum];
-				input.getWordListInSpeech(j, ansList);
+				int* ansList = new int[ansNum];//答案list
+				input.getWordListInSpeech(j, ansList);//获取答案list
 				bool* mask = new bool[dict->getTotalCbNum()];
-				dict->getUsedStateIdInAns(mask, ansList, ansNum);
-				gbc->setMask(mask);
+				dict->getUsedStateIdInAns(mask, ansList, ansNum);//获取mask
+				if(MAKE_NN_MODEL == true)gbc->setMask(mask);
 
 				double* frames = nullptr, *multiFrames = nullptr;
 				int totalFrameNum = 0;
 
 				if(tparam.getCltDirName() != "")
 				{
-					multiFrames = getClusterMultiFrames(j, fDim, fNum, cluster,input);
+					multiFrames = getClusterMultiFrames(j, fDim, fNum, cluster,input);//如果cluster，处理cluster多帧
 				}
 				else{
 					multiFrames = new double[fNum * fDim * (2 * MULTIFRAMES_COLLECT + 1)];
-					input.getMultiSpeechAt(j, multiFrames);
+					input.getMultiSpeechAt(j, multiFrames);//取前后多帧特征矢量。
 				}
 				clock_t t1;
 				//分割前完成概率的预计算
 				if(MAKE_NN_MODEL && iter == 0){
-					frames = new double[fNum * fDim * (2 * MULTIFRAMES_COLLECT + 1)];
+					frames = new double[fNum * fDim];
 					input.getSpeechAt(j, frames);
 					t1 = clock();
 					gbc->prepare(frames, fNum);		
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
 				}
 				else{
 					t1 = clock();
-					gbc->preparePy(multiFrames, fNum);		
+					gbc->preparePy(multiFrames, fNum);		//用python计算概率
 				}
 				prepareTime += clock() - t1;
 
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 
 		midTime = clock();
 		//用文件中HMM状态对应的帧特征向量，更新码本模型
-		ua.trainKerasNN(MAKE_NN_MODEL, tparam.getOutputCodebook(), tparam.getOutputCodebook());
+		ua.trainKerasNN(MAKE_NN_MODEL, tparam.getOutNNname(), tparam.getInitNNname());//用keras更新
 		clock_t endTime = clock();
 
 		int updTime = (endTime - midTime) / CLOCKS_PER_SEC;
@@ -216,7 +216,6 @@ int main(int argc, char** argv) {
 		fflush(lhRecordFile);
 	}
 
-	gbc->FinalizePython();
 
 	fclose(lhRecordFile);
 	fclose(updateTimeFile);
@@ -226,5 +225,7 @@ int main(int argc, char** argv) {
 	delete dict;
 	delete gbc;	
 	delete configName;
+	gbc->FinalizePython();
+
 	return 0;
 }

@@ -30,12 +30,6 @@
     <ClCompile Include="GMMUpdateManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MMIEstimator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WordLevelMMIEstimator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameWarehouse.h">
@@ -51,12 +45,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GMMUpdateManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MMIEstimator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WordLevelMMIEstimator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

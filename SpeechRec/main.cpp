@@ -10,9 +10,6 @@
 #include "../NBestRecAlgorithm/NBestRecAlgorithm.h"
 #include <direct.h>
 #include "../CommonLib/Cluster.h"
-#define REC_PY 1
-#define CLUSTER 0
-//#define DROPFRAME 0
 using namespace std;
 void printRecFile(FILE* fid, const vector<vector<SWord> >& res) {
 	fprintf(fid, "%4d\n", res.size());
@@ -49,7 +46,24 @@ void printRecResToScreen(const vector<vector<SWord> >& res, int* ansId, int ansN
 	printf(")\n");
 
 }
+int calSpeechLh(const int& j, FeatureFileSet& fs, GMMProbBatchCalc* gbc,const int& fNum, const int& fDim, Cluster* cluster){
 
+	double* features = new double[fNum * fDim];
+	fs.getSpeechAt(j, features);
+	int temp_fNum = fNum;
+	if(cluster != nullptr)temp_fNum = cluster->clusterFrame(features, j, fDim, fNum);
+	gbc->prepare(features, temp_fNum);
+	delete [] features;
+	return temp_fNum;
+}
+
+void calPySpeechLh(const int& j, FeatureFileSet& fs, GMMProbBatchCalc* gbc, const int& fNum, const int& fDim){
+
+	double* featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
+	fs.getMultiSpeechAt(j, featuresMulti);
+	gbc->preparePy(featuresMulti, fNum);
+	delete [] featuresMulti;
+}
 
 int main(int argc,char *argv[]) {
 
@@ -84,7 +98,9 @@ int main(int argc,char *argv[]) {
 
 	bool useCuda = rparam.getUseCudaFlag();
 	bool useSegmentModel = false && rparam.getSegmentModelFlag();
-
+	bool usePy = rparam.getUsePYFlag();
+	bool useCluster = rparam.getClusterFlag();
+	string cltDirname = rparam.getCltDirName();
 	if (useCuda)
 		printf("CUDA is used\n");
 	else 
@@ -96,10 +112,10 @@ int main(int argc,char *argv[]) {
 		printf("SegmentModel is not used\n");
 
 	GMMProbBatchCalc* gbc = new GMMProbBatchCalc(cbset, useCuda, useSegmentModel);
-#if REC_PY
-	gbc->initPython();
-	gbc->getNNModel(rparam.getCodebookFileName());
-#endif
+	if(usePy){
+		gbc->initPython();
+		gbc->getNNModel(rparam.getNNmodelName());
+	}
 	WordDict* dict = new WordDict(rparam.getWordDictFileName().c_str(),rparam.getTriPhone());
 
 	dict->setTriPhone(rparam.getTriPhone());
@@ -116,11 +132,12 @@ int main(int argc,char *argv[]) {
 		RSpeechFile input = inputs.at(i);
 		FeatureFileSet fs(input.getFeatureFileName(), input.getMaskFileName(), input.getAnswerFileName(), rparam.getFdim());
 
-
-#if	CLUSTER
-		Cluster cluster(input.getFeatureFileName(),fs);
-#endif
-
+		Cluster* cluster = nullptr;
+		if(useCluster > 0){
+			cltDirname = cltDirname == "" ? rparam.getCltDirName() : cltDirname;
+			cluster = new Cluster (input.getFeatureFileName(),cltDirname);
+			cout<< "CLT DIR NAME:"<<cltDirname<<endl;
+		}
 		string pdir = input.getRecResultFileName();
 		pdir = pdir.substr(0, pdir.find_last_of("/\\"));
 		if (GetFileAttributes(pdir.c_str()) == INVALID_FILE_ATTRIBUTES) {
@@ -137,18 +154,6 @@ int main(int argc,char *argv[]) {
 		int SentenceNum = fs.getSpeechNum();
 		fprintf(recf, "%4d\n", SentenceNum);
 
-#ifdef DROPFRAME
-		char tagFileName[4];
-		tagFileName[3] = 0;
-		sprintf(tagFileName,"M%.2d",i + 1);
-		FILE* df = fopen(string(string()).c_str(),"rb");
-		int n = fs.fileByteNum(df);
-		char* efBuf = new char[n];
-		fread(&n, 1, n, df);
-		fclose(df);
-#endif		
-
-
 		for (int j = 0; j < SentenceNum ; j++) {
 
 			printf("recognizing file %d: %d/%d\n", i, j, SentenceNum);
@@ -158,74 +163,12 @@ int main(int argc,char *argv[]) {
 
 			int fNum = fs.getFrameNumInSpeech(j);
 
-
-#ifdef DROPFRAME
-			ClusterIndex* clustidx = (ClusterIndex*)(efBuf + sizeof(ClusterIndex) * j);
-			float* energyBuf = (float*)(clustidx->offset + efBuf);
-			int frameLen = clustidx->ClusterNum;
-			if(frameLen != fNum){
-				printf("frameLen:%d != fNum:%d\n",frameLen,fNum);
+			if(usePy){
+				calPySpeechLh(j, fs, gbc, fNum, fDim);
 			}
-			int newfNum= 0;
-			for (int t = 0; t != fNum; t++)
-			{
-
-				if(energyBuf[t] > 10000){
-					newfNum ++;
-				}
+			else{
+				fNum = calSpeechLh(j, fs, gbc, fNum, fDim, cluster);
 			}
-#endif
-#if REC_PY
-			double* featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
-			fs.getMultiSpeechAt(j, featuresMulti);
-#if DROPFRAME
-			double* temp = new double[newfNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
-			int counter = 0;
-			int outCnt = 0;
-			for (int t = 0; t !=fNum; t++)
-			{
-
-				if(energyBuf[t] > 10000 && counter%2 == 0){
-					counter++;
-					continue;
-				}
-				memcpy(temp + (outCnt++) * fDim *(MULTIFRAMES_COLLECT * 2 + 1), featuresMulti + t * fDim *(MULTIFRAMES_COLLECT * 2 + 1), fDim *(MULTIFRAMES_COLLECT * 2 + 1));
-			}
-			fNum = newfNum;
-			memcpy(featuresMulti, temp, newfNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1));
-			delete[] temp;
-#endif
-			gbc->preparePy(featuresMulti, fNum);
-#else
-			double* features = new double[fNum * fDim];
-			fs.getSpeechAt(j, features);
-#if DROPFRAME
-			double* temp = new double[newfNum * fDim];
-			int counter = 0;
-			int outCnt = 0;
-			for (int t = 0; t !=fNum; t++)
-			{
-
-				if(energyBuf[t] > 10000 && counter%2 == 0){
-					counter++;
-					continue;
-				}
-				memcpy(temp + (outCnt++) * fDim, features + t * fDim , fDim);
-			}
-			fNum = newfNum;
-			memcpy(features, temp, newfNum * fDim);
-			delete[] temp;
-#endif
-#if CLUSTER
-			fNum = cluster.clusterFrame(features,j,fDim,fNum);
-			/*int clusterNum = cluster.getClusterNum(j);
-			int* clustInfo = cluster.getClusterInfo(j,fNum);
-			gbc->mergeClusterInfo(clustInfo,clusterNum);
-			fNum = clusterNum;*/
-#endif
-			gbc->prepare(features, fNum);
-#endif
-
 
 			vector<vector<SWord> > res = reca->recSpeech(fNum, fDim, dict, gbc, multiJump, useSegmentModel);
 			printRecResToScreen(res, pWordList, wordNum, dict);
@@ -236,26 +179,15 @@ int main(int argc,char *argv[]) {
 			}
 
 			delete [] pWordList;
-
-#if REC_PY
-			delete [] featuresMulti;
-#else
-			delete [] features;
-#endif
 			printRecFile(recf, res);
 		}
+		if(cluster != nullptr)delete cluster;
 		fclose(recf);
-
-#ifdef DROPFRAME
-		delete []efBuf;
-#endif
 	}
 	FILE* lhFile = fopen("lhrecord.txt", "w");
 	fprintf(lhFile, "lh = %e\n", totalLh);
 	fclose(lhFile);
-#if REC_PY
-	//gbc->FinalizePython();
-#endif
+
 	delete cbset;
 	delete dict;
 	delete reca;

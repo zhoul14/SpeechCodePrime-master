@@ -46,6 +46,10 @@ private:
 
 	std::string cltDirName;
 
+	std::string initNNmodelName;
+
+	std::string outNNmodelName;
+
 	double durWeight;
 
 	int trainNum;
@@ -117,6 +121,10 @@ public:
 	std::string getLogPath();
 
 	std::string getCltDirName();
+
+	std::string getInitNNname();
+	
+	std::string getOutNNname();
 };
 
 #endif

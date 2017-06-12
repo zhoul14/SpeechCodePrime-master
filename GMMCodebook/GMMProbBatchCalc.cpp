@@ -5,7 +5,6 @@
 #include "../CommonLib/CudaCalc/CUGaussLh.h"
 #include "../CommonLib/CudaCalc/CUDiagGaussLh.h"
 #include "../CommonLib/CudaCalc/CUShareCovLh.h"
-#include "../CommonLib/CUMixGaussLh.h"
 #include <Python.h>
 #include <arrayobject.h>
 #define PI 3.14159265358979
@@ -156,12 +155,10 @@ void GMMProbBatchCalc::preparePy(double* features, int fnum){
 	npy_intp len = fnum * pyFdim;
 	auto pNPY_array  = PyArray_SimpleNewFromData(1, &len, NPY_FLOAT64, features);
 
-	PyObject *pArgs = PyTuple_New(5);               //函数调用的参数
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s",MODEL_JSON_FILE));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("s",MODEL_H5_FILE));
-	PyTuple_SetItem(pArgs, 2, pNPY_array);
-	PyTuple_SetItem(pArgs, 3, Py_BuildValue("i", fnum));
-	PyTuple_SetItem(pArgs, 4, Py_BuildValue("i", pyFdim));
+	PyObject *pArgs = PyTuple_New(3);               //函数调用的参数
+	PyTuple_SetItem(pArgs, 0, pNPY_array);
+	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", fnum));
+	PyTuple_SetItem(pArgs, 2, Py_BuildValue("i", pyFdim));
 	PyObject *pReturn = PyEval_CallObject(pFunc, pArgs);
 
 	if (!pReturn)
@@ -181,15 +178,12 @@ void GMMProbBatchCalc::preparePy(double* features, int fnum){
 		alphaWeightedStateLh[i] = log((double)x[i]);
 	}
 	Py_DECREF(pNPY_ArrayIter);
-	//auto xx = new double[10000];
 	
 	int cnt = Py_REFCNT(pReturn);
 	while(cnt--){
 		Py_DECREF(pReturn);
 	}
 	Py_DECREF(pNPY_array);
-
-	//PyDataMem_FREE(pNPY_array->);
 
 }
 
@@ -472,8 +466,8 @@ void GMMProbBatchCalc::getNNModel(std::string it)
 	pFunc= PyObject_GetAttrString(pModule, "getModel");   
 
 	PyObject *pArgs = PyTuple_New(2);               //函数调用的参数
-	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s",(MODEL_JSON_FILE+it).c_str()));
-	PyTuple_SetItem(pArgs, 1, Py_BuildValue("s",(MODEL_H5_FILE+it).c_str()));
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("s",(it+MODEL_JSON_FILE).c_str()));
+	PyTuple_SetItem(pArgs, 1, Py_BuildValue("s",(it+MODEL_H5_FILE).c_str()));
 	PyObject *pReturn = PyEval_CallObject(pFunc, pArgs);
 	if (!pReturn)
 	{

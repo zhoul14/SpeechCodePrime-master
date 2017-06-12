@@ -26,55 +26,22 @@ int bianrySearch(int a[], int nLength, int val)
 } 
 
 void DTWCluster::calcCenters(double* ft, bool bInit, int flag = MEAN_CENTER){
-	vector<int> intervals;
+	vector<int>& intervals =*m_HistoryMap.rbegin();
+	int lastIdx = 0;
+	int idx = 0;
+	m_vecSimplePointCenters.clear();
 	if (bInit){
-		return;
+		//随机初始化，可以不采用（和initDistance同时存在时用随机初始化，无效，不用请注释掉if里面的内容）
 		int* tmp = new int[m_nClusterNum];
-		getUnrepRandomList(tmp, m_nFrameLen, m_nClusterNum);
+		getUnrepRandomList(tmp, m_nFrameLen, m_nClusterNum);//产生随机序列，并补充进intervals
+		intervals.clear();
 		for (int i = 0; i != m_nClusterNum; i++)
 		{
 			intervals.push_back(tmp[i]);
 		}
 		*intervals.rbegin()= m_nFrameLen;
 		delete[] tmp;
-		/*
-		int interval = m_nFrameLen/ m_nClusterNum;
-		if(interval >= 2){
-		for (int i = 0; i + 2 * interval<= m_nFrameLen; i+= interval){
-		int endId = interval + i;
-		intervals.push_back(endId);
-		}
-		intervals.push_back(m_nFrameLen);
-		}
-		else{
-		int y = m_nFrameLen - m_nClusterNum; //x + 2y = mnFramelen; x + y = mnclusternum;
-		int x = m_nClusterNum - y;
-		int i = 0;
-		int beginId = 0;
-		while(i < m_nClusterNum)
-		{
-		if (x!=0)
-		{
-		x--;
-		intervals.push_back(++beginId);		
-		i++;
-		}
-		if (y!=0)
-		{
-		y--;
-		beginId +=2;
-		intervals.push_back(beginId);					
-		i++;
-		}
-		}
-		}*///平均初始点
 	}
-	else{
-		intervals = (*m_HistoryMap.rbegin());
-	}
-	int lastIdx = 0;
-	int idx = 0;
-	m_vecSimplePointCenters.clear();
 
 	while(idx < m_nClusterNum){
 		int i = lastIdx;
@@ -286,15 +253,17 @@ vector<int> DTWCluster::getClusterInfo(const int& flag) {
 float DTWCluster::initDistance(double* fts, const int&fdim, const int& frameLen, const double& thres){
 	double* tmpCenterList = new double[frameLen * fdim];
 	double* tmpCenter = new double[fdim];
-	bool cltFlag = false;
-	int cltNum = 0, i = 0;
-	int tmpCltNum = 0;
+	bool cltFlag = false;//是否聚类
+	int cltNum = 0;//聚类帧总数
+	int tmpCltNum = 1;//聚类
 	memcpy(tmpCenter, fts,  sizeof(double) * fdim);
-	for (i = 0; i < frameLen; i++)
+	vector<int> intervals;//聚类分段信息
+	for (int i = 0; i < frameLen; i++)
 	{
+
 		if(i != frameLen - 1){
-			float d = calcDistance(fts + i * fdim, fts + i * fdim + fdim)/15;
-			if (d < thres)
+			float d = calcDistance(tmpCenter, fts + i * fdim + fdim)/15;
+			if (d < thres)//和后帧对比距离，如果小于门限则判定为同一帧。求和
 			{
 				cltFlag = true;
 				tmpCltNum ++;
@@ -303,18 +272,21 @@ float DTWCluster::initDistance(double* fts, const int&fdim, const int& frameLen,
 			}
 		}
 		if (cltFlag)
-		{
+		{//如果判定为同一聚类帧，取均值，cltFlag置零
 			for (int j = 0; j <fdim; j++)tmpCenter[j]/=tmpCltNum;
-			tmpCltNum = 0;
+			tmpCltNum = 1;
 			cltFlag = false;
 		}
 		memcpy(tmpCenterList + cltNum * fdim, tmpCenter, sizeof(double) * fdim);
 		if(i != frameLen - 1)memcpy(tmpCenter, fts + i * fdim + fdim, sizeof(double)* fdim);
 		++cltNum;
+		intervals.push_back(i+1);
 	}
 
-	//printf("rate:%f\n", (float)frameLen/cltNum);
 	init(cltNum, 30, fdim);
+
+	*intervals.rbegin()= frameLen;
+	(*m_HistoryMap.rbegin()) = intervals;//聚类分段信息
 	memcpy(m_pCenters, tmpCenterList, fdim * cltNum * sizeof(double));
 	delete []tmpCenter;
 	delete []tmpCenterList;
@@ -347,45 +319,17 @@ double DTWCluster::doCluster(double* fts,const int& frameLen, int flag, const in
 
 	m_nFrameLen = frameLen;
 	m_pFeatures = fts;
-	float historyDistance = INT_MAX, LASTdISTANCE = INT_MAX, FirstDistance = 0, lastJf = 0.0f;
-	double Wdistance;
+	float historyDistance = INT_MAX, lastDistance = INT_MAX, tempDistance = 0;
+	//历史最佳总距离，上次迭代总距离，当前距离
 	int ite, lastIte, sameTime = 0;
 	bool randomIte = false;
 	vector<int> bestFA;
-	//for (int jj = 0; jj != 50; jj++)//随机初始化
 	for ( ite = 0; ite != m_nIterNum; ite++)
 	{
 		for (double& i : m_vecDistances)i = INT_MAX;
 		m_vecDistances[0] = calcDistance(fts, 0);
 		randomIte = false;
 		calcCenters(fts, ite == 0, flag);
-		/*switch (flag)
-		{
-		case RANDOM_CENTER:
-		{
-		if (sameTime>2)
-		{
-		sameTime = 0;
-		calcCenters(fts, ite == 0, RANDOM_CENTER);
-		randomIte = true;
-		}
-		else		
-		calcCenters(fts, ite == 0, MEAN_CENTER);
-		break;
-		}
-		case MEAN_CENTER:
-		calcCenters(fts, ite == 0, MEAN_CENTER);
-		break;
-		case  MIDDLE_CENTER:
-		calcCenters(fts, ite == 0, MIDDLE_CENTER);
-		break;
-		case  FIRST_CENTER:
-		calcCenters(fts, ite == 0, FIRST_CENTER);
-		break;
-		default:
-		break;
-		}*/
-
 		for (vector<int>& i : m_HistoryMap)
 		{
 			for (int& j:i)
@@ -421,25 +365,20 @@ double DTWCluster::doCluster(double* fts,const int& frameLen, int flag, const in
 			}
 			m_vecDistances[0] = m_vecDistances[0] + calcDistance(fts + i * m_nFDim, 0);
 			m_HistoryMap[0][0] = i + 1;
-		}
+		}//DTW结束
+
 		float sumD = m_vecDistances[m_nClusterNum - 1];
-		//Wdistance = getWCdistance(fts);
-		
-		//double Bdistance = calcBCdistance();
-		//double Jf = log(Bdistance) - log(Wdistance + 1) ;
-		//lastJf = Jf;
-		//cout<<Wdistance<<endl;
-		//cout << "[JF]:"<< Jf << endl;
-		if(abs(sumD - LASTdISTANCE)<10e-8){
+		if(abs(sumD - lastDistance)<10e-8){
+			//本次迭代和上次迭代，总距离相差小于10e-8则停止迭代
 			sameTime++;
 			if (sameTime > 1){
-				//cout << "[JF]:"<< Jf << endl;
 				break;
 			}
 		}
-		FirstDistance =  ite != 0 ? FirstDistance  : sumD;
-		LASTdISTANCE = sumD;
+		tempDistance =  ite != 0 ? tempDistance  : sumD;
+		lastDistance = sumD;
 		if(historyDistance>sumD && randomIte == false && ite != 0){
+			//保存历史最佳路径
 			historyDistance =  min(sumD,historyDistance);
 			bestFA.clear();
 			bestFA.assign((*m_HistoryMap.rbegin()).begin(),(*m_HistoryMap.rbegin()).end());
@@ -448,7 +387,7 @@ double DTWCluster::doCluster(double* fts,const int& frameLen, int flag, const in
 
 	}
 	(*m_HistoryMap.rbegin()).assign(bestFA.begin(),bestFA.end());
-	return /*Wdistance*/0;//calcAdjionDistance();
+	return 0;
 }
 void DTWCluster::getUnrepRandomList(int* outVect, const int &n, const int &outLen){
 	int i;

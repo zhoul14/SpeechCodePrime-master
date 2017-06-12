@@ -1,5 +1,6 @@
 #ifndef WJQ_CU_GAUSS_LH_H
 #define WJQ_CU_GAUSS_LH_H
+//cpu/gpu 计算diag gauss 模型似然的函数
 
 
 #include "../Math/CMatrixInv.h"

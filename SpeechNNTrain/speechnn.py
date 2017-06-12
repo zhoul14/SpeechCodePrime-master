@@ -3,8 +3,7 @@ import numpy as np
 import os
 import time
 from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.models import model_from_json
+from keras.models import Sequential,model_from_json
 from keras.layers.recurrent import LSTM
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.advanced_activations import PReLU
@@ -22,12 +21,21 @@ def getdirsize(dir):
         size += sum([getsize(join(root, name)) for name in files if os.path.splitext(name)[1] =='.tmp'])
         
     return size
+    
+def clearMultiTmpFiles(dir, n):
+    for root, dirs, files in os.walk(dir):
+        for name in files:
+            for i in range(0,n):
+                if os.path.splitext(name)[1] =='.tmp%d'%i:
+                    os.remove(join(root,name))
+
 
 def errorStr(functionName):
     return '[python error]:'+functionName
 
 def makeFWTMPShuffle(dirName, n, stateNum,fdim = 45):
-    print n
+    print n,'clear old fwtmpshuffle file.'
+    clearMultiTmpFiles(dirName,n)
     FrameNumList = [0]*n
     for it in range(0,int(stateNum)):
         filename = dirName+"\\%.4d.tmp"%(it)
@@ -68,7 +76,6 @@ def getTxtFile2Py(filename):
 def getBiFile2Py(filename, fdim=45, myDtype="float32"):
     if os.path.exists(filename) == False:
         print filename,"does not exist"
-        print "[error]!!!!!!!Just Return"
         return []
     data = np.fromfile(filename,dtype=myDtype)
     #print data.shape
@@ -98,10 +105,8 @@ def getFWTMPmulti(dirName, stateNum, frameNum, appendNum,fdim = 45):
     p = 0
     print data.shape
     for it in range(0,int(stateNum)):
-        ##print dirName+"\\%.4d.tmp%d"%(it,appendNum)
         data0 =getBiFile2Py(dirName+"\\%.4d.tmp%d"%(it,appendNum),fdim)
         if len(data0) == 0:
-            print 'fc'
             continue
         if (data0.shape[0]/fdim) * fdim != data0.shape[0]:
             print data0.shape[0]/fdim,fdim,data0.shape[0]
@@ -134,12 +139,8 @@ def getPrepare(features,fnum,fdim=45):
     p = gModel.predict_proba(features,batch_size=100,verbose=0)
     return p
 
-def makeModel(jsonName, h5Name, outJName, outHName,dirName, stateNum, frameNum, fdim=45):
+def makeModel(outJName, outHName,dirName, stateNum, frameNum, fdim=45):
     print "make model"
-    #print dirName
-    #print stateNum
-    #print frameNum
-    #print fdim
     multiStep = 0
     epoch = 3
     print epoch
@@ -153,28 +154,19 @@ def makeModel(jsonName, h5Name, outJName, outHName,dirName, stateNum, frameNum, 
     else:
         data,label=getFWTMP(dirName, stateNum, frameNum, fdim)
         data = data.reshape(data.shape[0]/fdim, fdim)
-    #label =  np_utils.to_categorical(label, stateNum)
     print "data completed"
     model = Sequential()
     model.add(Dense(600,input_dim = fdim,activation='tanh'))
     model.add(PReLU())
-    #model.add(Dense(120,input_dim = fdim,activation='tanh',W_regularizer=l2(0.01)))
-    #model.add(Dropout(0.2))
     model.add(Dense(2048))
     model.add(PReLU())
     model.add(Dense(2048))
     model.add(PReLU())
-    #model.add(Dropout(0.5))
     model.add(Dense(4096))
     model.add(PReLU())
-    #model.add(Dropout(0.5))
-    #model.add(Dense(800))
-    #model.add(PReLU())
-    #model.add(Dropout(0.5))
     model.add(Dense(3206,activation='softmax'))
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     print "momdel compling"
-    #model.compile(loss='sparse_mean_squared_error', optimizer=sgd,metrics=['accuracy'])    
     model.compile(loss='sparse_categorical_crossentropy', optimizer=sgd,metrics=['accuracy'])
     if multiStep != 1 :
         model.fit(data,label,batch_size=100, nb_epoch=epoch,shuffle=True,verbose=1)
@@ -193,7 +185,6 @@ def makeModel(jsonName, h5Name, outJName, outHName,dirName, stateNum, frameNum, 
     json_string = model.to_json()
     open(outJName,'w').write(json_string)
     getModel(outJName, outHName)
-    #gModel = model
 
 
 def makeLSTMModel(jsonName, h5Name, dirName, stateNum, frameNum, fdim=45):
@@ -229,7 +220,7 @@ def trainModel(jsonName, h5Name, outJName, outHName,dirName, stateNum, frameNum,
     print "data loading!"
     print jsonName, h5Name, dirName, stateNum, frameNum, fdim
     multiStep = 0
-    epoch = 3
+    epoch = 1
     totalFrameSize = getdirsize(dirName)
     print "train---model:prepare data"
     if  totalFrameSize>= 6000000000:

@@ -14,7 +14,6 @@
 #include <vector>
 #include <string>
 #include <cuda.h>
-#include "../StateProbabilityMap/StateProbabilityMap.h"
 #include "assert.h"
 #include "../NBestRecAlgorithm/NBestRecAlgorithm.h"
 #include "omp.h"
@@ -23,7 +22,8 @@
 using std::vector;
 using std::string;
 
-#define HALF_FRAME_LEN 1
+//是否5ms帧长，0表示不是
+#define HALF_FRAME_LEN 0
 
 int main(int argc, char** argv) {
 
@@ -39,7 +39,6 @@ int main(int argc, char** argv) {
 		//current_path(argv[2]);
 	}
 
-
 	string* configName;
 	if (argc == 1) {
 		configName = new string("train_config.xml");
@@ -50,17 +49,11 @@ int main(int argc, char** argv) {
 	bool triPhone = tparam.getTriPhone();
 	//初始化u中各成员
 	SegmentUtility u;
-	SegmentUtility uHelper;
-
 	SimpleSTFactory* stfact = new SimpleSTFactory();
-	SimpleSTFactory* stfactHelper = NULL;
-
 	u.factory = stfact;
-	uHelper.factory = stfactHelper;
 
 	WordDict* dict = new WordDict(tparam.getWordDictFileName().c_str(),triPhone);
 	u.dict = dict;
-	uHelper.dict = dict;
 
 	string initCb = tparam.getInitCodebook();
 
@@ -79,7 +72,6 @@ int main(int argc, char** argv) {
 	}
 
 	int cbNum = set->getCodebookNum();
-
 	double durWeight = tparam.getDurWeight();
 	bool useCuda = tparam.getUseCudaFlag();
 	bool useSegmentModel = tparam.getSegmentModelFlag();
@@ -107,7 +99,6 @@ int main(int argc, char** argv) {
 	int trainIter = tparam.getTrainIterNum();
 
 	string logPath = tparam.getLogPath();
-
 	string lhRecordPath = logPath + "/lh_record.txt";
 	string updateTimePath = logPath + "/update_time.txt";
 	string updateIterPath = logPath + "/update_iter.txt";
@@ -130,7 +121,7 @@ int main(int argc, char** argv) {
 		printf("cannot open log file[%s]\n", summaryPath.c_str());
 		exit(-1);
 	}
-	GMMUpdateManager ua(set, maxEMIter, dict, tparam.getMinDurSigma(), updateIterPath.c_str(), useCuda, useSegmentModel, false);
+	GMMUpdateManager ua(set, maxEMIter, dict, tparam.getMinDurSigma(), updateIterPath.c_str(), useCuda, useSegmentModel);
 
 	for (int iter = 0; iter < trainIter ; iter++) {
 
@@ -143,7 +134,7 @@ int main(int argc, char** argv) {
 				break;
 			const int fDim = tparam.getFdim();
 			FeatureFileSet input((*i).getFeatureFileName(), (*i).getMaskFileName(), (*i).getAnswerFileName(), fDim);
-			Cluster cluster((*i).getFeatureFileName(),input, tparam.getCltDirName());
+			Cluster cluster((*i).getFeatureFileName(), tparam.getCltDirName());
 			int speechNumInFile = input.getSpeechNum();
 			for (int j = 0; j < (speechNumInFile); j++) {
 				printf("process file %d, speech %d    \r", trainCnt, j);
@@ -166,11 +157,12 @@ int main(int argc, char** argv) {
 				input.getWordListInSpeech(j, ansList);
 				//分割前完成概率的预计算
 				bool* mask = new bool[dict->getTotalCbNum()];
-				gbc->prepare(frames, fNum);
+				dict->getUsedStateIdInAns(mask, ansList, ansNum);
+				gbc->setMask(mask);
 				if(clusterFlag){
 					double* tmpFrames = new double[fDim * fNum];
 					memcpy(tmpFrames, frames, sizeof(double) * fDim * fNum);
-					fNum = cluster.clusterFrameSame(tmpFrames, j, fDim, fNum);
+					fNum = cluster.clusterFrame(tmpFrames, j, fDim, fNum);
 					gbc->prepare(tmpFrames, fNum);
 					delete tmpFrames;
 				}
@@ -190,7 +182,8 @@ int main(int argc, char** argv) {
 
 		clock_t midTime = clock();
 		int segTime = (midTime - begTime) / CLOCKS_PER_SEC;
-		fprintf(lhRecordFile, "iter %d,\tlh = %e, segment time = %ds, TotalFrameNum = %d", iter, lhOfThisIter, segTime,  ua.getFW()->getTotalFrameNum());
+		fprintf(lhRecordFile, "iter %d,\tlh = %e, segment time = %ds, TotalFrameNum = %d",
+			iter, lhOfThisIter, segTime, ua.getFW()->getTotalFrameNum());
 		fflush(lhRecordFile);
 		vector<int> updateRes = ua.update();
 		ua.summaryUpdateRes(updateRes, summaryFile, iter);

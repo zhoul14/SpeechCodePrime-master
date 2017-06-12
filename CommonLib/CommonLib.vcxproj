@@ -22,7 +22,6 @@
     <ClCompile Include="CudaCalc\CUDiagGaussLh.cpp" />
     <ClCompile Include="CudaCalc\CUGaussLh.cpp" />
     <ClCompile Include="CudaCalc\CUShareCovLh.cpp" />
-    <ClCompile Include="CUMixGaussLh.cpp" />
     <ClCompile Include="Dict\WordDict.cpp" />
     <ClCompile Include="Feature\20dBEnergyGeometryAverageMFCC45.cpp" />
     <ClCompile Include="Feature\CFFT.cpp" />
@@ -48,7 +47,6 @@
     <ClInclude Include="CudaCalc\CUDiagGaussLh.h" />
     <ClInclude Include="CudaCalc\CUGaussLh.h" />
     <ClInclude Include="CudaCalc\CUShareCovLh.h" />
-    <ClInclude Include="CUMixGaussLh.h" />
     <ClInclude Include="Dict\WordDict.h" />
     <ClInclude Include="Droper.h" />
     <ClInclude Include="Feature\20dBEnergyGeometryAverageMFCC45.h" />

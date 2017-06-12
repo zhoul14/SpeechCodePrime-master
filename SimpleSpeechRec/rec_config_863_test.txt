@@ -1,0 +1,34 @@
+PARAM:
+DURWEIGHT  0
+DICTCONFIG D:/MyCodes/DDBHMMTasks/dict/worddict.txt
+USECUDA 0
+SEGMENTMODEL 0
+RECNUM 1
+CODEBOOK full_4mix_0.cb
+MULTIJUMP 
+TRIPHONE 1
+FDIM 45
+USEPY 1
+NNMODEL testNN
+USEHALFLEN 0
+USEDROP 0
+DATA:
+E:/Speech/isoword/male/d45/M08.d45 E:/Speech/isoword/sbword.idx E:/Speech/isoword/male/tag/M08.tag res/M08.rec
+E:/Speech/863/male/d45/M71.d45 E:/Speech/863/male/idx/M71.idx E:/Speech/863/male/tag/M71.tag res/M71.rec
+E:/Speech/863/male/d45/M72.d45 E:/Speech/863/male/idx/M72.idx E:/Speech/863/male/tag/M72.tag res/M72.rec
+E:/Speech/863/male/d45/M73.d45 E:/Speech/863/male/idx/M73.idx E:/Speech/863/male/tag/M73.tag res/M73.rec
+E:/Speech/863/male/d45/M74.d45 E:/Speech/863/male/idx/M74.idx E:/Speech/863/male/tag/M74.tag res/M74.rec
+E:/Speech/863/male/d45/M75.d45 E:/Speech/863/male/idx/M75.idx E:/Speech/863/male/tag/M75.tag res/M75.rec
+E:/Speech/863/male/d45/M76.d45 E:/Speech/863/male/idx/M76.idx E:/Speech/863/male/tag/M76.tag res/M76.rec
+E:/Speech/863/male/d45/M77.d45 E:/Speech/863/male/idx/M77.idx E:/Speech/863/male/tag/M77.tag res/M77.rec
+E:/Speech/863/male/d45/M78.d45 E:/Speech/863/male/idx/M78.idx E:/Speech/863/male/tag/M78.tag res/M78.rec
+E:/Speech/863/male/d45/M79.d45 E:/Speech/863/male/idx/M79.idx E:/Speech/863/male/tag/M79.tag res/M79.rec
+E:/Speech/863/male/d45/M80.d45 E:/Speech/863/male/idx/M80.idx E:/Speech/863/male/tag/M80.tag res/M80.rec
+E:/Speech/863/male/d45/M81.d45 E:/Speech/863/male/idx/M81.idx E:/Speech/863/male/tag/M81.tag res/M81.rec
+E:/Speech/863/male/d45/M82.d45 E:/Speech/863/male/idx/M82.idx E:/Speech/863/male/tag/M82.tag res/M82.rec
+E:/Speech/863/male/d45/M83.d45 E:/Speech/863/male/idx/M83.idx E:/Speech/863/male/tag/M83.tag res/M83.rec
+E:/Speech/ThspTest/d45/THSP01.d45 E:/Speech/ThspTest/idx/THSP01.idx E:/Speech/ThspTest/tag/THSP01.tag recs/THSP01.rec
+E:/Speech/ThspTest/d45/THSP02.d45 E:/Speech/ThspTest/idx/THSP02.idx E:/Speech/ThspTest/tag/THSP02.tag recs/THSP02.rec
+E:/Speech/ThspTest/d45/THSP04.d45 E:/Speech/ThspTest/idx/THSP04.idx E:/Speech/ThspTest/tag/THSP04.tag recs/THSP04.rec
+E:/Speech/ThspTest/d45/THSP07.d45 E:/Speech/ThspTest/idx/THSP07.idx E:/Speech/ThspTest/tag/THSP07.tag recs/THSP07.rec
+E:/Speech/ThspTest/d45/THSP09.d45 E:/Speech/ThspTest/idx/THSP09.idx E:/Speech/ThspTest/tag/THSP09.tag recs/THSP09.rec

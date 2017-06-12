@@ -73,42 +73,70 @@ ClusterParam::ClusterParam(const char* filename) {
 		printf("DATA label not found in config file\n");
 		exit(-1);
 	}
-	std::string ansFile, ftFile, maskFile, resFile;
 	while (getline(infile, line)) {
 		trim(line);
 		if (line == "")
 			continue;
 
 		std::stringstream ss(line);
-		RSpeechFile f;
-		ss >> f.featureFile >> f.answerFile >> f.maskFile >> f.recResultFile;
-		trim(f.answerFile);
+		CSpeechFile f;
+		std::string tmp = "";
+		ss >> f.featureFile >> f.answerFile >> f.maskFile;
 		trim(f.featureFile);
+		trim(f.answerFile);
 		trim(f.maskFile);
-		trim(f.recResultFile);
 		fileSets.push_back(f);
 	}
 	infile.close();
 
-	recNum = std::stoi(config["RECNUM"]);
-	if (recNum <= 0) {
-		printf("RECNUM = %d, must > 0\n", recNum);
+	fileNum = std::stoi(config["NUM"]);
+	if (fileNum <= 0) {
+		printf("RECNUM = %d, must > 0\n", fileNum);
 		exit(-1);
 	}
-	if (recNum < fileSets.size())
-		fileSets.resize(recNum);
+	if (fileNum < fileSets.size())
+		fileSets.resize(fileNum);
 	fDim = config["FDIM"] == "" ? 45 :std::stoi(config["FDIM"]);
-
+	useDTW = config["DTW"]=="" ? 0 :std::stoi(config["DTW"]);
+	useNICV = config["NICV"]=="" ? 1 :std::stoi(config["NICV"]);
+	rate = config["RATE"] == ""? 1 : std::stof(config["RATE"]);
+	threshold = config["THRESHOLD"] == ""? 0.6 : std::stof(config["THRESHOLD"]);
+	saveDir = config["SAVEDIR"];
+	useHalfLen = config["HALFLEN"] == ""? 0 : std::stof(config["HALFLEN"]);
 }
 
-int ClusterParam::getRecNum() {
-	return recNum;
+int ClusterParam::getFileNum() {
+	return fileNum;
+}
+
+std::string ClusterParam::getSaveDir(){
+	return saveDir;
 }
 
 int ClusterParam::getFdim(){
 	return fDim;
 }
 
-std::vector<RSpeechFile> ClusterParam::getRecFiles() {
+std::vector<CSpeechFile> ClusterParam::getClusterFiles() {
 	return fileSets;
+}
+
+bool ClusterParam::getDTWflag(){
+	return useDTW;
+}
+
+bool ClusterParam::getNICVflag(){
+	return useNICV;
+}
+
+double ClusterParam::getRate(){
+	return rate;
+}
+
+double ClusterParam::getThres(){
+	return threshold;
+}
+
+bool ClusterParam::getHalfLen(){
+	return useHalfLen;
 }

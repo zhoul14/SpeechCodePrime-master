@@ -301,3 +301,10 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+*.clt
+*.pyc
+*.rec
+*.cb
+*.h5
+*.json

@@ -99,10 +99,7 @@ TrainParam::TrainParam(const char* filename) {
 	infile.close();
 
 	outputCodebook = ph["OUTCODEBOOK"];
-	if (outputCodebook == "") {
-		printf("must assign output codebook path\n");
-		exit(-1);
-	}
+
 	
 
 	initCodebook = ph["INITCODEBOOK"];
@@ -163,6 +160,9 @@ TrainParam::TrainParam(const char* filename) {
 	}
 
 	cltDirName = ph["CLTDIR"];
+	initNNmodelName = ph["INITMODEL"];
+	outNNmodelName = ph["OUTMODEL"];
+
 // 	using boost::property_tree::ptree;
 // 	using boost::algorithm::trim;
 
@@ -300,6 +300,13 @@ int TrainParam::getTrainIterNum() {
 	return trainIterNum;
 }
 
+std::string TrainParam::getInitNNname(){
+	return initNNmodelName;
+}
+
+std::string TrainParam::getOutNNname(){
+	return outNNmodelName;
+}
 
 std::string TrainParam::getCltDirName(){
 	return cltDirName;

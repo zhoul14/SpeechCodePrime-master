@@ -7,18 +7,18 @@ public:
 		string s = filename.substr(filename.find_last_of('/') + 1,filename.find_last_of('.') - filename.find_last_of('/') -1);
 		FILE* df = fopen(string("ef/"+ s + ".ef").c_str(),"rb");
 		int n = fs.fileByteNum(df);
-		mEfBuf = new char[n];
-		fread(mEfBuf, 1, n, df);
+		mClusterFileBuf = new char[n];
+		fread(mClusterFileBuf, 1, n, df);
 		fclose(df);
 		mDropVal = dropVal;
 	};
 	~Droper(){
-		delete []mEfBuf;
+		delete []mClusterFileBuf;
 	}
 
 	int getNewFnum(const int& j, const int& primeFnum){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		float* energyBuf = (float*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		float* energyBuf = (float*)(clustidx->offset + mClusterFileBuf);
 		int frameLen = clustidx->ClusterNum;
 		if(frameLen != primeFnum){
 			printf("frameLen:%d != fNum:%d\n",frameLen,primeFnum);
@@ -39,8 +39,8 @@ public:
 	}
 
 	int dropFrame(double* features, const int& j, const int &fDim, const int&fNum){
-		ClusterIndex* clustidx = (ClusterIndex*)(mEfBuf + sizeof(ClusterIndex) * j);
-		float* energyBuf = (float*)(clustidx->offset + mEfBuf);
+		ClusterIndex* clustidx = (ClusterIndex*)(mClusterFileBuf + sizeof(ClusterIndex) * j);
+		float* energyBuf = (float*)(clustidx->offset + mClusterFileBuf);
 		int counter = 0;
 		double* temp = new double[mFNum * fDim];
 		int outCnt = 0;
@@ -59,6 +59,6 @@ public:
 	}
 private:
 	int mFNum;
-	char* mEfBuf;
+	char* mClusterFileBuf;
 	int mDropVal;
 };

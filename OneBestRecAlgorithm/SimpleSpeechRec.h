@@ -31,6 +31,7 @@ private:
 
 	SRecToken* startNoiseNode;
 
+	//´´½¨BinSet
 	void constructBinSet();
 
 	void releaseBinSet();

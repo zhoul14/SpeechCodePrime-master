@@ -46,30 +46,20 @@ long DoRecg(void* pInfo, short* SpeechBuf, long DataNum) {
 
 
 int main() {
+	//输入配置文件路径
 	const char* cbfile = "D:/MyCodes/DDBHMMTasks/codebooks/all_codebook/full_8mix.cb";
 	const char* dictfile = "../DictConfig/worddict.txt";
 	const char* cmdwordfile = "cmdword.txt";
-
+	//初始配置
 	double durWeight = 0;
 	bool useCuda = false;
 	bool useSegmentModel = false;
-
+	//新建命令词识别类
 	CmdWordRecg* rec = new CmdWordRecg(cmdwordfile, cbfile, dictfile, durWeight, useCuda, useSegmentModel);
-
-	FILE* FCB = fopen("test.fm","rb");
-	fseek(FCB, 0, SEEK_END);
-	int buffSize = ftell(FCB);
-	fseek(FCB, 0, SEEK_SET);
-	short* fbuf = new short[buffSize/2];
-	int x = sizeof(short);
-	fread(fbuf,sizeof(short),buffSize/sizeof(short),FCB);
-	fclose(FCB);
-	auto res = rec->cmdRecg(fbuf,buffSize/2);
-
+	//启动VAD，并进行检测识别
 	CVAD* vad = new CVAD();
 	vad->IniClass(rec);
 	vad->SetRecgCallback(DoRecg);
-
 
 	::fflush(stdin);
 	while( _kbhit() == 0 ) {

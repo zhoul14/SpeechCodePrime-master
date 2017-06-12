@@ -4,7 +4,6 @@
 #include "../CommonLib/CudaCalc/CUGaussLh.h"
 #include "../CommonLib/CudaCalc/CUDiagGaussLh.h"
 #include "../CommonLib/CudaCalc/CUShareCovLh.h"
-#include "../CommonLib/CUMixGaussLh.h"
 #include <string>
 #include <windows.h>
 //#include "boost/filesystem.hpp"

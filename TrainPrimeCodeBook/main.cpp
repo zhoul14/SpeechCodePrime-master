@@ -14,7 +14,6 @@
 #include <vector>
 #include <string>
 #include <cuda.h>
-#include "../StateProbabilityMap/StateProbabilityMap.h"
 #include "assert.h"
 #include "../NBestRecAlgorithm/NBestRecAlgorithm.h"
 #include "omp.h"
@@ -22,14 +21,13 @@
 using std::vector;
 using std::string;
 
-#define PRIME 1
-#define CODEBOOK_NUM 3206
-#define HALF_FRAME_LEN 0
-#define PRIME_DIM 45
+#define PRIME 1//首次
+#define CODEBOOK_NUM 3206//新码本多少个状态
+#define HALF_FRAME_LEN 0//是否半帧长
 
 
 int main(int argc, char** argv) {
-
+	
 	if (argc > 3) {
 		printf("usage: program_name config_file [basedir]");
 		exit(-1);
@@ -70,7 +68,7 @@ int main(int argc, char** argv) {
 
 	GMMCodebookSet* set = new GMMCodebookSet(initCb.c_str(),0);
 
-	GMMCodebookSet* mySet = new GMMCodebookSet(CODEBOOK_NUM, fDim2, 1/*mixnum*/,1/*type*/);//
+	GMMCodebookSet* mySet = new GMMCodebookSet(CODEBOOK_NUM, fDim2, 1/*mixnum*/,GMMCodebookSet::CB_TYPE_FULL_RANK/*type*/);//
 
 	GCSTrimmer::fixSmallDurSigma(set, tparam.getMinDurSigma());
 
@@ -153,7 +151,7 @@ int main(int argc, char** argv) {
 
 			FeatureFileSet input((*i).getFeatureFileName(), (*i).getMaskFileName(), (*i).getAnswerFileName(), fDim);
 
-			Cluster cluster((*i).getFeatureFileName(),input, tparam.getCltDirName());
+			Cluster cluster((*i).getFeatureFileName(), tparam.getCltDirName());
 
 			int ii=trainCnt;
 			FeatureFileSet input2(inputs2[ii].getFeatureFileName(),inputs2[ii].getMaskFileName(),inputs2[ii].getAnswerFileName(),fDim2);

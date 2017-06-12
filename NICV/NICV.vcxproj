@@ -122,8 +122,6 @@
     <ClInclude Include="CWaveFormatFile.h" />
     <ClInclude Include="DisCluster.h" />
     <ClInclude Include="DTWCluster.h" />
-    <ClInclude Include="EF.h" />
-    <ClInclude Include="EFeature.h" />
     <ClInclude Include="FeatureFileSet.h" />
     <ClInclude Include="ClusterParam.h" />
   </ItemGroup>
@@ -134,11 +132,9 @@
     <ClCompile Include="CFFT.cpp" />
     <ClCompile Include="CWaveFormatFile.cpp" />
     <ClCompile Include="DTWCluster.cpp" />
-    <ClCompile Include="EF.cpp" />
-    <ClCompile Include="EFeature.cpp" />
     <ClCompile Include="FeatureFileSet.cpp" />
     <ClCompile Include="ClusterParam.cpp" />
-    <ClCompile Include="源.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
