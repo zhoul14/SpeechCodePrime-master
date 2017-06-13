@@ -308,3 +308,6 @@ $RECYCLE.BIN/
 *.cb
 *.h5
 *.json
+SpeechNNTrain/model.rar
+SpeechRec/python27_d.lib
+SpeechRec/rec_config.xml
