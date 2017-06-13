@@ -34,6 +34,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeechTrainGMM", "SpeechTra
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NICV", "NICV\NICV.vcxproj", "{4E818692-25D1-4909-8467-C8050944CC6C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeechRec", "SpeechRec\SpeechRec.vcxproj", "{DCFA63EA-8306-4495-B622-2A7FA64B9843}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -212,6 +214,18 @@ Global
 		{4E818692-25D1-4909-8467-C8050944CC6C}.Release|Win32.Build.0 = Release|Win32
 		{4E818692-25D1-4909-8467-C8050944CC6C}.Release|x64.ActiveCfg = Release|x64
 		{4E818692-25D1-4909-8467-C8050944CC6C}.Release|x64.Build.0 = Release|x64
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|Win32.Build.0 = Debug|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|x64.ActiveCfg = Debug|x64
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Debug|x64.Build.0 = Debug|x64
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|Win32.ActiveCfg = Release|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|Win32.Build.0 = Release|Win32
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|x64.ActiveCfg = Release|x64
+		{DCFA63EA-8306-4495-B622-2A7FA64B9843}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
