@@ -311,3 +311,7 @@ $RECYCLE.BIN/
 SpeechNNTrain/model.rar
 SpeechRec/python27_d.lib
 SpeechRec/rec_config.xml
+X64/*
+Release/*
+Debug/*
+*.rar
