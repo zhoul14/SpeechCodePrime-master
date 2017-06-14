@@ -50,7 +50,7 @@ void getClusterInfoFileDTW(const float& rate, const int& fDim, ClusterParam& cPa
 		//¶ÁÐ´ÎÄ¼þ
 		int p = inputs[ii].getFeatureFileName().find_last_of('/'), q = inputs[ii].getFeatureFileName().find_last_of('.');
 		string d45Filename = inputs[ii].getFeatureFileName();
-		string cltDirName = cParam.getSaveDir();//d45Filename.substr(0, p + 1)+ to_string(rate).substr(0,4);
+		string cltDirName = d45Filename.substr(0, p + 1)+ to_string(rate).substr(0,4);
 		if (GetFileAttributes(cltDirName.c_str()) == INVALID_FILE_ATTRIBUTES) {
 			CreateDirectory(cltDirName.c_str(), NULL);
 		}
@@ -122,7 +122,7 @@ void getClusterInfoFileNICV(const float& threshold, const int& fDim, ClusterPara
 
 		int p = inputs[ii].getFeatureFileName().find_last_of('/'), q = inputs[ii].getFeatureFileName().find_last_of('.');
 		string d45Filename = inputs[ii].getFeatureFileName();
-		string cltDirName = cParam.getSaveDir();//d45Filename.substr(0, p + 1)+ to_string(threshold * 100).substr(0,4);
+		string cltDirName = d45Filename.substr(0, p + 1)+ to_string(threshold * 100).substr(0,4);
 
 		if (GetFileAttributes(cltDirName.c_str()) == INVALID_FILE_ATTRIBUTES) {
 			CreateDirectory(cltDirName.c_str(), NULL);

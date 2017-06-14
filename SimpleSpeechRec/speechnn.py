@@ -12,7 +12,7 @@ from keras.layers.convolutional import Convolution1D, MaxPooling1D
 from keras.optimizers import SGD, Adadelta, Adagrad
 from keras.utils import np_utils, generic_utils
 from six.moves import range
-from keras.regularizers import l2,
+from keras.regularizers import l2
 import random
 from os.path import join, getsize
 
@@ -139,6 +139,8 @@ def getModel(jsonName, h5Name):
         print 'new gModel'
         pass
     print jsonName,h5Name
+    if os.path.exists(h5Name) == False or os.path.exists(jsonName) == False:
+        print "h5 file or json file cannot find:",h5Name,jsonName
     gModel = model_from_json(open(jsonName).read())
     gModel.load_weights(h5Name)
     gModel.summary()
@@ -203,6 +205,8 @@ def makeModel(outJName, outHName,dirName, stateNum, frameNum, fdim=45):
 def trainModel(jsonName, h5Name, outJName, outHName,dirName, stateNum, frameNum, learnRate, fdim=45):
     print "data loading!"
     print jsonName, h5Name, dirName, stateNum, frameNum, fdim
+    if os.path.exists(h5Name) == False or os.path.exists(jsonName) == False:
+        print "h5 file or json file cannot find:",h5Name,jsonName
     multiStep = 0
     epoch = 1
     totalFrameSize = getdirsize(dirName)

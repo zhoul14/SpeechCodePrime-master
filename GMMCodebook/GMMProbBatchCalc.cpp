@@ -173,7 +173,7 @@ void GMMProbBatchCalc::preparePy(double* features, int fnum){
 		exit(-1);
 	}
 	auto pNPY_ArrayIter  = (PyArrayIterObject *)PyArray_IterNew((PyObject*)pReturn);
-	auto x = (double*)pNPY_ArrayIter->dataptr;
+	auto x = (float*)pNPY_ArrayIter->dataptr;
 	for (int i = 0; i < fnum * codebookNum; i++) {
 		alphaWeightedStateLh[i] = log((double)x[i]);
 	}
