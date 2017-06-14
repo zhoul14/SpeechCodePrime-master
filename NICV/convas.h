@@ -47,7 +47,7 @@
 #define BEST_N 20
 #define FEATURE_DIM 45
 
-#define MULTIFRAMES_COLLECT 0
+#define MULTIFRAMES_COLLECT 5
 #define MODEL_H5_FILE "model.h5"
 #define MODEL_JSON_FILE "model.json"
 #define PYTHONFILE "speechnn"
