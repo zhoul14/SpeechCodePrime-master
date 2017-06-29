@@ -23,7 +23,7 @@ GMMEstimator::~GMMEstimator() {
 		delete [] precalcLh;
 }
 
-GMMEstimator::GMMEstimator(int fDim, int mixNum, int cbType, int maxIter, bool useCuda, double coef, int betaNum) 
+GMMEstimator::GMMEstimator(int fDim, int mixNum, int cbType, int maxIter, bool useCuda, double coef) 
 {
 	init(fDim, mixNum, cbType, maxIter, useCuda);
 }
@@ -554,7 +554,6 @@ FUNC_HEAD:
 		memset(sharedInvSigma, 0, fDim * fDim * sizeof(double));
 	}
 	//to be continued
-
 	for (int i = 0; i < mixNum; i++) {
 		double* tempInvSigma = new double[L];
 		memset(tempInvSigma, 0, L * sizeof(double));
@@ -569,11 +568,6 @@ FUNC_HEAD:
 			if (isFullRank()) {
 				for (int k = 0; k < fDim; k++) {
 					for (int l = 0; l <= k; l++) {
-						if ( k >= DefaultFdim && l < DefaultFdim)
-						{
-							l = DefaultFdim - 1;
-							continue;
-						}
 						tempInvSigma[k * fDim + l] += f[k] * f[l] * g;
 					}
 				}

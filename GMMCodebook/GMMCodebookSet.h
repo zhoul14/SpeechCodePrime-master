@@ -206,10 +206,6 @@ public:
 
 	double* DetSigma;	//det(Sigma)
 
-	int BetaNum;
-
-	double * Beta;
-
 	static const int INIT_MODE_FILE = 0;
 
 	static const int INIT_MODE_MEMORY = 1;

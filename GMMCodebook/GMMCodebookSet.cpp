@@ -393,10 +393,6 @@ GMMCodebookSet::~GMMCodebookSet()
 		delete [] DurVar;
 		delete [] LogDurVar;
 		delete [] DetSigma;
-		if (Beta)
-		{
-			delete []Beta;
-		}
 	}
 
 }

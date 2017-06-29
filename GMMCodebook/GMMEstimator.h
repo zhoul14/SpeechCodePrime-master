@@ -99,7 +99,7 @@ public:
 	static const int CB_TYPE_FULL_RANK = 1;
 	static const int CB_TYPE_FULL_RANK_SHARE = 2;
 
-	GMMEstimator(int fDim, int mixNum, int cbType, int maxIter, bool useCuda, double Coef, int BetaNum = 2);
+	GMMEstimator(int fDim, int mixNum, int cbType, int maxIter, bool useCuda, double Coef);
 
 	GMMEstimator(int fDim, int mixNum, int cbType, int maxIter, bool useCuda);
 		

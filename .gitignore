@@ -315,3 +315,5 @@ X64/*
 Release/*
 Debug/*
 *.rar
+*dump*
+timer*

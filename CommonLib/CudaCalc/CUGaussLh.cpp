@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include "../Math/MathUtility.h"
 #include <float.h>
+#include <iostream>
 #define DEFAULT_FDIM 45
 
 extern "C" void kernelMvnWrapper(int cbNum, int fDim, double* invSigmaDev, double* muDev, double* cstDev, double* featureDev, int fNum, double* resBufDev, dim3 threads, dim3 blocks, int memSize);
@@ -200,6 +201,9 @@ void CUGaussLh::init(int cbNum, int fDim, double* invSigma, double* mu, double* 
 			double* invSigmaCompressPtr = invSigmaCompress + fDim * (fDim + 1) / 2 * i;
 			for (int j = 0; j < fDim; j++) {
 				for (int k = 0; k < j; k++) {
+
+					//std::cout<< j <<" fDim::"<< fDim << " K:"<<k <<std::endl;
+					//std::cout<< invSigmaPtr[j * fDim + k];
 					invSigmaCompressPtr[j * (j + 1) / 2 + k] = invSigmaPtr[j * fDim + k];
 					//*invSigmaCompressPtr = k == j ? 0.5 * t : t;
 					//invSigmaCompressPtr++;

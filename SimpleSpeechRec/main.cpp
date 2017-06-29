@@ -57,9 +57,9 @@ void calSpeechLh(FeatureFileSet &fs, Droper* droper, Cluster* cluster, const int
 	delete [] features;
 }
 
-void calPYSpeechLh(FeatureFileSet &fs, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc){
+void calPYSpeechLh(FeatureFileSet &fs, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc, int & fNum){
 
-	int fNum = fs.getFrameNumInSpeech(j);
+	fNum = fs.getFrameNumInSpeech(j);
 	double* featuresMulti = nullptr;
 	if(cluster == nullptr){
 		featuresMulti = new double[fNum * fDim * (MULTIFRAMES_COLLECT * 2 + 1)];
@@ -84,9 +84,9 @@ void calPYSpeechLh(FeatureFileSet &fs, Cluster* cluster, const int& j, const int
 	delete [] featuresMulti;
 }
 
-void calHalfFrameLenSpeechLh(FeatureFileSet &fs, Droper* droper, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc){
+void calHalfFrameLenSpeechLh(FeatureFileSet &fs, Droper* droper, Cluster* cluster, const int& j, const int& useClusterFlag, const int& fDim, GMMProbBatchCalc* gbc, int & fNum){
 
-	int fNum = fs.getFrameNumInSpeech_half_framelen(j);
+	fNum = fs.getFrameNumInSpeech_half_framelen(j);
 	double* features = new double[fNum * fDim];
 	fs.getSpeechAt_half_framelen(j, features, fNum);
 	if(cluster!= nullptr)fNum = cluster->clusterFrame(features, j, fDim, fNum, useClusterFlag);//Èç¹û¾ÛÀà
@@ -150,7 +150,6 @@ int main(int argc,char *argv[]) {
 	double totalLh = 0;
 	double time1 = clock();
 	for (int i = 0; i < recFileNum; i++) {
-
 		RSpeechFile input = inputs.at(i);
 		FeatureFileSet fs(input.getFeatureFileName(), input.getMaskFileName(), input.getAnswerFileName(), cbset->FDim);
 
@@ -192,10 +191,10 @@ int main(int argc,char *argv[]) {
 			if(droper != nullptr)droper->getNewFnum(j,fNum);
 			
 			if(useHalfLenStep){
-				calHalfFrameLenSpeechLh(fs, droper, cluster, j, useClusterFlag, fDim, gbc);
+				calHalfFrameLenSpeechLh(fs, droper, cluster, j, useClusterFlag, fDim, gbc, fNum);
 			}
 			else if (usePy){
-				calPYSpeechLh(fs, cluster, j, useClusterFlag, fDim, gbc);
+				calPYSpeechLh(fs, cluster, j, useClusterFlag, fDim, gbc, fNum);
 			}
 			else{
 				calSpeechLh(fs, droper, cluster, j, fNum, useClusterFlag, fDim, gbc);

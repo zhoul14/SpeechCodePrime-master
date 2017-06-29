@@ -29,7 +29,7 @@ GMMUpdateManager::GMMUpdateManager(GMMCodebookSet* codebooks, int maxIter, WordD
 		printf("cannot open log file[%s] in update manager\n", logFileName);
 		exit(-1);
 	}
-	estimator = new GMMEstimator(codebooks->getFDim(), codebooks->getMixNum(), codebooks->getCbType(), maxIter, cudaFlag, 0, codebooks->BetaNum);
+	estimator = new GMMEstimator(codebooks->getFDim(), codebooks->getMixNum(), codebooks->getCbType(), maxIter, cudaFlag, 0);
 	estimator->setOutputFile(logFile);
 
 	std::string fwpath = "FWTMP";

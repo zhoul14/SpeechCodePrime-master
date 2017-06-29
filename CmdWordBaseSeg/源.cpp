@@ -184,16 +184,16 @@ int main(int argc,char *argv[]) {
 			
 			int wordNum = fs.getWordNumInSpeech(maxIdx);
 			int* pWordList = pWordMap[maxIdx];
-			//printSegResToScreen(res.frameLabel, res.stateLh, pWordList, wordNum, dict);
 
+			int ansNum = fs.getWordNumInSpeech(j);
+			int* ansList = pWordMap[j];
 			if(maxIdx != j){
 				errorCnt ++;
-				int ansNum = fs.getWordNumInSpeech(j);
-				int* ansList = pWordMap[j];
-				printSegResToScreen(pWordList, wordNum, ansList, ansNum, dict);
 				fprintf(f, "Error idx:%d", j);
 				printSegResToFile(f,pWordList, wordNum, ansList, ansNum, dict);
 			}
+
+			printSegResToScreen(pWordList, wordNum, ansList, ansNum, dict);
 
 			int resLen = res.frameLabel.size();
 			totalLh += res.lh;
